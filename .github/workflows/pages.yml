@@ -253,9 +253,6 @@ jobs:
         with:
           path: _site
 
-      # deploy-pages は、アップロード直後のアーティファクトが API から見えず（Found 0 artifact(s)）、たまに失敗する。
-      # 一時的な問題なので、失敗したら少し待って 1 回だけやり直す（2 回とも失敗したときだけジョブを失敗にする）
-      # （待っても直らないとき、たとえばアップロードが登録されていないときは、Actions で Re-run failed jobs する）
       # R2 に置いたゲームは、書き出しに使った状態が今も最新か確かめる。別の実行が先に新しい状態を保存していたら、
       # この（古い状態の）書き出しは公開しない（R2 ではコミットが増えないので、コミットの比較では見分けられない）
       - if: needs.load-state.outputs.r2 == 'true'
@@ -288,6 +285,9 @@ jobs:
             echo "ok=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # deploy-pages は、アップロード直後のアーティファクトが API から見えず（Found 0 artifact(s)）、たまに失敗する。
+      # 一時的な問題なので、失敗したら少し待って 1 回だけやり直す（2 回とも失敗したときだけジョブを失敗にする）
+      # （待っても直らないとき、たとえばアップロードが登録されていないときは、Actions で Re-run failed jobs する）
       - id: deploy
         if: steps.fresh.outputs.ok == 'true'
         uses: actions/deploy-pages@v5
