@@ -60,6 +60,9 @@ Variable `R2_STATE_BRANCHES`（空白区切り。例: `develop`）に入れた�
 毎日の実行・登録・引退は R2 から最新を取得して進め、R2 に保存する。サイトの書き出し（`pages.yml`）も R2 の状態を使う（本番 PR のプレビューは master の状態）。
 R2 の読み書きは `.github/actions/r2-state` にまとめている。
 
+今は **develop を R2 に置いている**（2026-11-28 に切り替え。develop ブランチの `.state/` は消した）。master はまだブランチにコミットしている。
+develop に `.state/` がなくても、`tools/release.py` はリリースブランチの `.state/` を master の内容に戻すので、本番のセーブはそのまま残る。
+
 | 項目 | 内容 |
 |---|---|
 | バケット | `warriors-road-state`（標準ストレージクラス） |
