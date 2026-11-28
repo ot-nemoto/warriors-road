@@ -60,6 +60,13 @@ Variable `R2_STATE_BRANCHES`（空白区切り。例: `develop`）に入れた�
 毎日の実行・登録・引退は R2 から最新を取得して進め、R2 に保存する。サイトの書き出し（`pages.yml`）も R2 の状態を使う（本番 PR のプレビューは master の状態）。
 R2 の読み書きは `.github/actions/r2-state` にまとめている。
 
+今は **develop を R2 に置いている**（2026-11-28 に切り替え。develop ブランチの `.state/` は消した）。master はまだブランチにコミットしている。
+develop に `.state/` がなくても、`tools/release.py` はリリースブランチの `.state/` を master の内容に戻すので、本番のセーブはそのまま残る。
+
+- `R2_STATE_BRANCHES` から develop を外さない。master を加えるときは `develop master` と両方書く（`gh variable set R2_STATE_BRANCHES --body "develop master"`）。
+  外れると develop はコミットで保存する処理に戻る。そのときブランチに `.state/heroes.json` がなければ、毎日の実行・登録・引退とサイトの書き出しは止まる（空のゲームとして進めない）
+- develop 宛ての PR に `.state/` を入れない（手元で R2 の状態を展開したときは、コミットする前に消す）
+
 | 項目 | 内容 |
 |---|---|
 | バケット | `warriors-road-state`（標準ストレージクラス） |
@@ -79,18 +86,18 @@ R2 の読み書きは `.github/actions/r2-state` にまとめている。
 
 実行が重ならない時間（JST 7:17 の前後を避ける）に行う。
 
-1. 切り替えるブランチの今の `.state/` を R2 の最新に置く（手元で。wrangler で Cloudflare にログインしておく）
+1. 切り替えるブランチの今の `.state/` を R2 の最新に置く（手元で。wrangler で Cloudflare にログインしておく。例は master）
 
    ```sh
-   git fetch origin develop
+   git fetch origin master
    tmp=$(mktemp -d)
-   git archive origin/develop .state | tar -x -C "$tmp"
+   git archive origin/master .state | tar -x -C "$tmp"
    tar -czf "$tmp/state.tar.gz" -C "$tmp/.state" .
-   npx wrangler r2 object put warriors-road-state/develop/latest.tar.gz --file "$tmp/state.tar.gz" --remote
+   npx wrangler r2 object put warriors-road-state/master/latest.tar.gz --file "$tmp/state.tar.gz" --remote
    ```
 
-2. Variable `R2_STATE_BRANCHES` にゲームを加える（例: `gh variable set R2_STATE_BRANCHES --body develop`）
-3. 手動で進めて（開発は *Advance development game*）、R2 の最新が更新され、ブランチにコミットが増えず、サイトに反映されることを確かめる
+2. Variable `R2_STATE_BRANCHES` にゲームを加える（すでに入っているゲームも残す。例: `gh variable set R2_STATE_BRANCHES --body "develop master"`）
+3. 手動で進めて（本番は *Advance hero adventure (text RPG)*、開発は *Advance development game*）、R2 の最新が更新され、ブランチにコミットが増えず、サイトに反映されることを確かめる
 
 ### 手元で R2 の状態を使う
 
@@ -99,6 +106,8 @@ npx wrangler r2 object get warriors-road-state/develop/latest.tar.gz --file stat
 rm -rf .state && mkdir .state && tar -xzf state.tar.gz -C .state
 python scripts/rpg.py --dry-run --actions 4
 ```
+
+展開した `.state/` はコミットしない（R2 に置いたゲームのブランチには `.state/` を置かない）。終わったら `rm -rf .state` で消す。
 
 ### 前の状態に戻す
 
@@ -125,5 +134,6 @@ npx wrangler r2 object put warriors-road-state/develop/latest.tar.gz --file stat
 | workflow が動かない | 60 日無活動で停止。Actions タブで *Enable workflow*（keepalive で通常は防げる） |
 | `R2 に <ゲーム> の状態（<ゲーム>/latest.tar.gz）がありません` | R2 に切り替えたのに、最新を置いていない。「ゲームを R2 に切り替える」の 1 を行う |
 | `セーブが別の実行で更新されています`（R2 に保存するとき） | 取得してから保存するまでに、別の実行が R2 の最新を置き換えた。もう一度実行する |
+| `<ゲーム> に .state/heroes.json がありません` | R2 に置いたゲームが `R2_STATE_BRANCHES` から外れている。Variable を直してから、もう一度実行する |
 | `Cloudflare の API トークンを確かめられませんでした` | `CLOUDFLARE_API_TOKEN` が無効、または呼び出し元のワークフローから Secret が渡されていない |
 | 実行が数十分遅れる | Actions の cron は遅延することがある（仕様） |

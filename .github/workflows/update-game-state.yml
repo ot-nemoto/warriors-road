@@ -115,6 +115,18 @@ jobs:
             echo "tree=$(git rev-parse --verify -q HEAD:.state || printf absent)" >> "$GITHUB_OUTPUT"
           fi
 
+      # コミットで保存するゲームなのに状態がなければ止める（R2 に置いたゲームが R2_STATE_BRANCHES から外れたとき、
+      # 空のゲームとして進めてしまわないように。#301）
+      - name: Check the state in the branch
+        if: needs.load-state.outputs.r2 != 'true'
+        env:
+          BRANCH: ${{ inputs.branch }}
+        run: |
+          if [ ! -f .state/heroes.json ]; then
+            echo "::error::$BRANCH に .state/heroes.json がありません。状態を R2 に置いているゲームなら、Variable R2_STATE_BRANCHES に $BRANCH が入っているか確かめてください"
+            exit 1
+          fi
+
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
