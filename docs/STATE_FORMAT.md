@@ -9,13 +9,15 @@
 | [`board.json`](#boardjson) | `scripts/rpg.py`（最初の毎日の実行） | 番付の Gist の ID と URL |
 | [`guild.json`](#guildjson) | `scripts/rpg.py`（毎日の実行） | 町ごとの口入れ屋の高札（日をまたいで残る。早い者勝ち） |
 | [`heroes/<id>.json`](#heroesidjson) | `scripts/rpg.py` | もののふごとの状態・持ち物・日誌・シーズンの記録 |
-| [`last-run`](#last-run) | hero-adventure.yml の Commit state ステップ | 最終実行日 |
+| [`last-run`](#last-run) | update-game-state.yml の Record the last daily run ステップ | 最終実行日 |
 
 共通の決まり:
 
 - 日付はすべて JST の `YYYY-MM-DD`（文字列）
 - インデント（2 スペース）付きの整形済み JSON（UTF-8）で保存する
-- workflow の最後に github-actions[bot] が master に直接コミットする（変更が無ければコミットしない）
+- workflow の最後に github-actions[bot] が master に直接コミットする（変更が無ければコミットしない）。
+  Variable `R2_STATE_BRANCHES` に入れたゲームは、コミットせずに Cloudflare R2 に置く（[SETUP.md](SETUP.md) の「5. ゲームの状態を R2 に置く」）。
+  そのゲームではブランチの `.state/` は使わないので、状態を直すときは R2 の最新を直す
 
 ---
 
