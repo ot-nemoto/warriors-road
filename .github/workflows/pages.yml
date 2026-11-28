@@ -225,6 +225,17 @@ jobs:
           mkdir .state
           tar -xzf "$RUNNER_TEMP/state-input/state.tar.gz" -C .state
 
+      # 状態を R2 に置いていないのに状態がなければ、空のサイトを公開せずに止める（#301）
+      - name: Check the state in the branch
+        if: needs.load-state.outputs.r2 != 'true'
+        env:
+          BRANCH: ${{ needs.resolve.outputs.branch }}
+        run: |
+          if [ ! -f .state/heroes.json ]; then
+            echo "::error::$BRANCH の .state/heroes.json がありません。状態を R2 に置いているゲームなら、Variable R2_STATE_BRANCHES を確かめてください"
+            exit 1
+          fi
+
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
@@ -333,6 +344,17 @@ jobs:
           rm -rf .state
           mkdir .state
           tar -xzf "$RUNNER_TEMP/state-input/state.tar.gz" -C .state
+
+      # 状態を R2 に置いていないのに状態がなければ、空のサイトを公開せずに止める（#301）
+      - name: Check the state in the branch
+        if: needs.load-state.outputs.r2 != 'true'
+        env:
+          BRANCH: ${{ needs.resolve.outputs.branch }}
+        run: |
+          if [ ! -f .state/heroes.json ]; then
+            echo "::error::$BRANCH の .state/heroes.json がありません。状態を R2 に置いているゲームなら、Variable R2_STATE_BRANCHES を確かめてください"
+            exit 1
+          fi
 
       - uses: actions/setup-python@v6
         with:
